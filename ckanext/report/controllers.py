@@ -25,6 +25,12 @@ class ReportController(t.BaseController):
         except KeyError:
             t.abort(404, 'Report not found')
 
+        c.options = report.add_defaults_to_options(t.request.params)
+
+        if hasattr(report, 'authorize'):
+            if not report.authorize(c.userobj, c.options):
+                t.abort(401, 'Not Authorized')
+
         # ensure correct url is being used
         if 'organization' in t.request.environ['pylons.routes_dict'] and \
             'organization' not in report.option_defaults:
@@ -40,7 +46,6 @@ class ReportController(t.BaseController):
             t.redirect_to(dguhelpers.relative_url_for())
 
         # options
-        c.options = report.add_defaults_to_options(t.request.params)
         if 'format' in c.options:
             format = c.options.pop('format')
         else:
