@@ -25,6 +25,8 @@ class ReportController(t.BaseController):
         except KeyError:
             t.abort(404, 'Report not found')
 
+        t.get_action('foo')(data_dict={})
+
         # ensure correct url is being used
         if 'organization' in t.request.environ['pylons.routes_dict'] and \
             'organization' not in report.option_defaults:
