@@ -7,6 +7,7 @@ from ckanext.report.report_registry import ReportRegistry
 from ckan.lib.render import TemplateNotFound
 from ckanext.report.json_utils import DateTimeJsonEncoder
 from ckan.common import OrderedDict
+from ckan import model
 
 c = t.c
 
@@ -25,7 +26,16 @@ class ReportController(t.BaseController):
         except KeyError:
             t.abort(404, 'Report not found')
 
-        t.get_action('foo')(data_dict={})
+        c.options = report.add_defaults_to_options(t.request.params)
+
+        context = {'model': model,
+                   'session': model.Session,
+                   'user': c.user,
+                   'options': c.options,
+                   'report': report}
+
+        if t.check_access('foo', context):
+            t.get_action('foo')(data_dict={})
 
         # ensure correct url is being used
         if 'organization' in t.request.environ['pylons.routes_dict'] and \
@@ -42,7 +52,6 @@ class ReportController(t.BaseController):
             t.redirect_to(dguhelpers.relative_url_for())
 
         # options
-        c.options = report.add_defaults_to_options(t.request.params)
         if 'format' in c.options:
             format = c.options.pop('format')
         else:
